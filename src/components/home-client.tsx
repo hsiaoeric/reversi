@@ -38,13 +38,13 @@ export function HomeClient() {
 
   return (
     <>
-      <Card className="w-full max-w-md shadow-2xl">
+      <Card className="w-full max-w-md shadow-2xl bg-gray-900 border-gray-700 text-white">
         <CardHeader className="items-center text-center">
           <WatermelonIcon className="h-24 w-24 mb-4" />
           <CardTitle className="text-4xl font-bold font-headline">
             Watermelon Reversi
           </CardTitle>
-          <CardDescription className="text-lg pt-2">
+          <CardDescription className="text-lg pt-2 text-gray-300">
             A fresh and juicy take on a classic game.
           </CardDescription>
         </CardHeader>
@@ -61,10 +61,10 @@ export function HomeClient() {
                 Player vs AI
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700 text-white">
               <DialogHeader>
                 <DialogTitle>Choose AI Opponent</DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-gray-400">
                   Select a strategy for your computer opponent.
                 </DialogDescription>
               </DialogHeader>

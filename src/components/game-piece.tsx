@@ -2,8 +2,7 @@
 
 import { memo } from "react";
 import { cn } from "@/lib/utils";
-import { EMPTY, Player } from "@/lib/reversi-logic";
-import { SeedIcon } from "./icons/seed-icon";
+import { EMPTY, Player, PLAYER_1, PLAYER_2 } from "@/lib/reversi-logic";
 
 interface GamePieceProps {
   player: 0 | Player;
@@ -14,16 +13,25 @@ export const GamePiece = memo(({ player, isFlipped }: GamePieceProps) => {
   if (player === EMPTY) {
     return null;
   }
+  
+  const opponent = player === PLAYER_1 ? PLAYER_2 : PLAYER_1;
+  const pieceClass = player === PLAYER_1 ? "bg-black" : "bg-white";
+
+  if (!isFlipped) {
+    return (
+      <div className="chess w-[97%] h-[97%]">
+        <div className={cn("w-full h-full rounded-full", pieceClass)} />
+      </div>
+    );
+  }
+  
+  const opponentPieceClass = opponent === PLAYER_1 ? "bg-black" : "bg-white";
 
   return (
-    <div className="w-full h-full p-1 perspective">
-      <div className={cn("relative w-full h-full preserve-3d", isFlipped && "animate-flip")}>
-         <div className="absolute w-full h-full backface-hidden">
-            <SeedIcon player={player === 1 ? 2 : 1} className="w-full h-full" />
-        </div>
-        <div className="absolute w-full h-full backface-hidden rotate-y-180">
-            <SeedIcon player={player} className="w-full h-full" />
-        </div>
+    <div className="chess w-[97%] h-[97%] perspective">
+      <div className="relative w-full h-full preserve-3d animate-flip-custom">
+        <div className={cn("absolute w-full h-full rounded-full backface-hidden", opponentPieceClass)} />
+        <div className={cn("absolute w-full h-full rounded-full backface-hidden rotate-y-180", pieceClass)} />
       </div>
     </div>
   );

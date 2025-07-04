@@ -88,16 +88,15 @@ export default {
             height: '0',
           },
         },
-        flip: {
-          '0%': { transform: 'rotateY(0deg) scale(1)' },
-          '50%': { transform: 'rotateY(90deg) scale(1.1)' },
-          '100%': { transform: 'rotateY(180deg) scale(1)' },
-        }
+        'flip-custom': {
+          from: { transform: 'rotateY(0deg)' },
+          to: { transform: 'rotateY(180deg)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'flip': 'flip 0.7s ease-in-out',
+        'flip-custom': 'flip-custom 0.8s ease-in-out',
       },
     },
   },

@@ -17,7 +17,7 @@ interface GameBoardProps {
 const GameBoard = ({ board, validMoves, onSquareClick, isAiThinking, flippedPieces }: GameBoardProps) => {
   return (
     <div className="relative">
-      <div className="grid grid-cols-8 aspect-square bg-green-800/50 rounded-lg shadow-2xl p-2 gap-1 border-4 border-secondary">
+      <div id="chess-board" className="grid grid-cols-8 aspect-square shadow-2xl mx-auto w-full">
         {board.map((row, rowIndex) =>
           row.map((cell, colIndex) => {
             const isValidMove = validMoves.some(
@@ -31,19 +31,13 @@ const GameBoard = ({ board, validMoves, onSquareClick, isAiThinking, flippedPiec
               <div
                 key={`${rowIndex}-${colIndex}`}
                 className={cn(
-                  "aspect-square rounded-md flex items-center justify-center",
-                  (rowIndex + colIndex) % 2 === 0 ? "bg-secondary/70" : "bg-secondary/50",
-                  "hover:bg-primary/30 transition-colors duration-200",
-                  isValidMove && "cursor-pointer"
+                  "aspect-square flex items-center justify-center bg-green-700 border border-black",
+                  "transition-colors duration-300",
+                  isValidMove ? "active bg-green-500 hover:bg-green-600 hover:shadow-inner cursor-pointer" : "hover:bg-green-800"
                 )}
-                onClick={() => onSquareClick(rowIndex, colIndex)}
+                onClick={() => isValidMove && onSquareClick(rowIndex, colIndex)}
               >
-                <div className="relative w-full h-full flex items-center justify-center">
-                  <GamePiece player={cell} isFlipped={isFlipped} />
-                  {isValidMove && (
-                    <div className="absolute w-1/4 h-1/4 rounded-full bg-primary/50" />
-                  )}
-                </div>
+                <GamePiece player={cell} isFlipped={isFlipped} />
               </div>
             );
           })

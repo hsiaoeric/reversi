@@ -30,16 +30,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { SeedIcon } from "./icons/seed-icon";
 import { User, Bot } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 type GameMode = "pvp" | "pva";
 
 export default function GameClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { toast } = useToast();
 
   const gameMode = useMemo(() => (searchParams.get("mode") as GameMode) || "pvp", [searchParams]);
   const aiStrategy = useMemo(() => (searchParams.get("strategy") as AIStrategy) || "Greedy", [searchParams]);
@@ -53,7 +50,7 @@ export default function GameClient() {
   const [flippedPieces, setFlippedPieces] = useState<Move[]>([]);
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [aiOpponentName, setAiOpponentName] = useState<string>('Computer');
-  const [hasSkipped, setHasSkipped] = useState(false);
+  const [passMessage, setPassMessage] = useState<string | null>(null);
 
   const P1_NAME = "Player 1";
   const P2_NAME = gameMode === 'pva' ? aiOpponentName : "Player 2";
@@ -86,7 +83,7 @@ export default function GameClient() {
     const { newBoard, flipped } = makeMove(board, move, currentPlayer);
     setBoard(newBoard);
     setFlippedPieces(flipped);
-    setTimeout(() => setFlippedPieces([]), 700);
+    setTimeout(() => setFlippedPieces([]), 800);
     
     const nextPlayer = currentPlayer === PLAYER_1 ? PLAYER_2 : PLAYER_1;
     const newScores = calculateScores(newBoard);
@@ -101,17 +98,14 @@ export default function GameClient() {
     } else if (nextPlayerMoves.length > 0) {
         setCurrentPlayer(nextPlayer);
         setValidMoves(nextPlayerMoves);
-        setHasSkipped(false);
     } else {
-        // Next player has no moves, current player plays again
-        toast({
-            title: "No moves available!",
-            description: `${nextPlayer === PLAYER_1 ? P1_NAME : P2_NAME} has no valid moves. ${currentPlayer === PLAYER_1 ? P1_NAME : P2_NAME}'s turn again.`,
-        });
+        const nextPlayerName = nextPlayer === PLAYER_1 ? P1_NAME : P2_NAME;
+        const currentPlayerName = currentPlayer === PLAYER_1 ? P1_NAME : P2_NAME;
+        setPassMessage(`${nextPlayerName} has no valid moves. ${currentPlayerName}'s turn again.`);
+        setTimeout(() => setPassMessage(null), 2000);
         setValidMoves(currentPlayerMoves);
-        setHasSkipped(true);
     }
-  }, [board, currentPlayer, isGameOver, validMoves, P1_NAME, P2_NAME, toast]);
+  }, [board, currentPlayer, isGameOver, validMoves, P1_NAME, P2_NAME]);
 
   useEffect(() => {
     if (gameMode === 'pva' && currentPlayer === PLAYER_2 && !isGameOver) {
@@ -144,25 +138,30 @@ export default function GameClient() {
   const getPlayerName = (player: Player) => player === PLAYER_1 ? P1_NAME : P2_NAME;
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen p-2 sm:p-4 bg-background/80">
-      <div className="w-full max-w-4xl">
+    <main className="flex flex-col items-center justify-center min-h-screen p-2 sm:p-4">
+      {passMessage && (
+        <div id="pass" className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white bg-green-700 rounded-2xl p-6 z-50 text-xl shadow-lg">
+            {passMessage}
+        </div>
+      )}
+      <div className="w-full max-w-[700px]">
         <div className="flex justify-between items-center mb-4 px-2">
             <h1 className="text-2xl sm:text-4xl font-bold font-headline">Watermelon Reversi</h1>
-            <Button variant="outline" onClick={() => router.push('/')}>New Game</Button>
+            <Button variant="outline" onClick={() => router.push('/')} className="text-black">New Game</Button>
         </div>
         
-        <div className="flex justify-around items-center mb-4 p-4 bg-card rounded-lg shadow-md">
-            <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_1 ? 'bg-primary/20 scale-110' : ''}`}>
+        <div className="flex justify-around items-center mb-4 p-4 rounded-lg">
+            <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_1 ? 'bg-green-500/20 scale-110' : ''}`}>
                 <div className="flex items-center gap-2">
-                    {gameMode === 'pva' ? <User className="w-6 h-6"/> : <SeedIcon player={PLAYER_1} className="w-6 h-6"/>}
+                    {gameMode === 'pva' ? <User className="w-6 h-6"/> : <div className="w-6 h-6 rounded-full bg-black border-2 border-gray-400" />}
                     <span className="text-lg font-semibold">{P1_NAME}</span>
                 </div>
                 <span className="text-3xl font-bold">{scores.player1}</span>
             </div>
             
-            <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_2 ? 'bg-primary/20 scale-110' : ''}`}>
+            <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_2 ? 'bg-green-500/20 scale-110' : ''}`}>
                 <div className="flex items-center gap-2">
-                    {gameMode === 'pva' ? <Bot className="w-6 h-6"/> : <SeedIcon player={PLAYER_2} className="w-6 h-6"/>}
+                    {gameMode === 'pva' ? <Bot className="w-6 h-6"/> : <div className="w-6 h-6 rounded-full bg-white border-2 border-gray-400" />}
                     <span className="text-lg font-semibold">{P2_NAME}</span>
                 </div>
                 <span className="text-3xl font-bold">{scores.player2}</span>
@@ -177,12 +176,12 @@ export default function GameClient() {
           flippedPieces={flippedPieces}
         />
 
-        <div className="text-center mt-4 text-lg font-medium">
+        <div id="message" className="text-center mt-4 text-lg font-medium">
             {isGameOver ? "Game Over" : `${getPlayerName(currentPlayer)}'s turn`}
         </div>
 
         <AlertDialog open={isGameOver}>
-          <AlertDialogContent>
+          <AlertDialogContent className="text-black">
             <AlertDialogHeader>
               <AlertDialogTitle>Game Over!</AlertDialogTitle>
               <AlertDialogDescription>
