@@ -153,7 +153,7 @@ export default function GameClient() {
         <div className="flex justify-around items-center mb-4 p-4 rounded-lg">
             <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_1 ? 'bg-green-500/20 scale-110' : ''}`}>
                 <div className="flex items-center gap-2">
-                    {gameMode === 'pva' ? <User className="w-6 h-6"/> : <div className="w-6 h-6 rounded-full bg-black border-2 border-gray-400" />}
+                    {gameMode === 'pva' ? <User className="w-6 h-6"/> : <div className="w-6 h-6 rounded-full bg-black border-2 border-border" />}
                     <span className="text-lg font-semibold">{P1_NAME}</span>
                 </div>
                 <span className="text-3xl font-bold">{scores.player1}</span>
@@ -161,7 +161,7 @@ export default function GameClient() {
             
             <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_2 ? 'bg-green-500/20 scale-110' : ''}`}>
                 <div className="flex items-center gap-2">
-                    {gameMode === 'pva' ? <Bot className="w-6 h-6"/> : <div className="w-6 h-6 rounded-full bg-white border-2 border-gray-400" />}
+                    {gameMode === 'pva' ? <Bot className="w-6 h-6"/> : <div className="w-6 h-6 rounded-full bg-primary border-2 border-border" />}
                     <span className="text-lg font-semibold">{P2_NAME}</span>
                 </div>
                 <span className="text-3xl font-bold">{scores.player2}</span>

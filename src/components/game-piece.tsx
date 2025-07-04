@@ -15,7 +15,7 @@ export const GamePiece = memo(({ player, isFlipped }: GamePieceProps) => {
   }
   
   const opponent = player === PLAYER_1 ? PLAYER_2 : PLAYER_1;
-  const pieceClass = player === PLAYER_1 ? "bg-black" : "bg-white";
+  const pieceClass = player === PLAYER_1 ? "bg-black" : "bg-primary";
 
   if (!isFlipped) {
     return (
@@ -25,7 +25,7 @@ export const GamePiece = memo(({ player, isFlipped }: GamePieceProps) => {
     );
   }
   
-  const opponentPieceClass = opponent === PLAYER_1 ? "bg-black" : "bg-white";
+  const opponentPieceClass = opponent === PLAYER_1 ? "bg-black" : "bg-primary";
 
   return (
     <div className="chess w-[97%] h-[97%] perspective">
