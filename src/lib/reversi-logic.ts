@@ -1,4 +1,3 @@
-"use server";
 
 export const BOARD_SIZE = 8;
 export const PLAYER_1 = 1; // Human in PvA
