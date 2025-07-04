@@ -39,7 +39,7 @@ export default function GameClient() {
   const router = useRouter();
 
   const gameMode = useMemo(() => (searchParams.get("mode") as GameMode) || "pvp", [searchParams]);
-  const aiStrategy = useMemo(() => (searchParams.get("strategy") as AIStrategy) || "Greedy", [searchParams]);
+  const aiStrategy = useMemo(() => (searchParams.get("strategy") as AIStrategy) || "Max ev2", [searchParams]);
 
   const [board, setBoard] = useState<Board>(createInitialBoard());
   const [currentPlayer, setCurrentPlayer] = useState<Player>(PLAYER_1);

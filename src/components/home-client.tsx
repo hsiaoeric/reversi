@@ -28,7 +28,7 @@ import { WatermelonIcon } from "@/components/icons/watermelon-icon";
 import type { AIStrategy } from "@/lib/reversi-logic";
 
 export function HomeClient() {
-  const [aiStrategy, setAiStrategy] = useState<AIStrategy>("Greedy");
+  const [aiStrategy, setAiStrategy] = useState<AIStrategy>("Max ev2");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const router = useRouter();
 
@@ -61,7 +61,7 @@ export function HomeClient() {
                 Player vs AI
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700 text-white">
+            <DialogContent className="sm:max-w-md bg-gray-900 border-gray-700 text-white">
               <DialogHeader>
                 <DialogTitle>Choose AI Opponent</DialogTitle>
                 <DialogDescription className="text-gray-400">
@@ -74,25 +74,39 @@ export function HomeClient() {
                   onValueChange={(value: AIStrategy) => setAiStrategy(value)}
                   className="space-y-4"
                 >
-                  <div className="flex items-center space-x-3">
-                    <RadioGroupItem value="Strategic" id="r1" />
+                  <div className="flex items-start space-x-3">
+                    <RadioGroupItem value="random" id="r1" className="mt-1"/>
                     <Label htmlFor="r1" className="flex flex-col">
-                      <span className="font-semibold">Strategic</span>
-                      <span>Thinks a few moves ahead.</span>
+                      <span className="font-semibold">random</span>
+                      <span className="text-sm text-gray-400">隨機下</span>
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <RadioGroupItem value="Greedy" id="r2" />
+                  <div className="flex items-start space-x-3">
+                    <RadioGroupItem value="Max ev1" id="r2" className="mt-1"/>
                     <Label htmlFor="r2" className="flex flex-col">
-                      <span className="font-semibold">Greedy</span>
-                      <span>Tries to take the most pieces.</span>
+                      <span className="font-semibold">Max ev1</span>
+                      <span className="text-sm text-gray-400">使用的是封鎖對方行動力的策略，他會讓對手可下的棋步越來越少。</span>
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <RadioGroupItem value="Random" id="r3" />
+                  <div className="flex items-start space-x-3">
+                    <RadioGroupItem value="Max ev2" id="r3" className="mt-1"/>
                     <Label htmlFor="r3" className="flex flex-col">
-                      <span className="font-semibold">Random</span>
-                      <span>Makes unpredictable moves.</span>
+                      <span className="font-semibold">Max ev2</span>
+                      <span className="text-sm text-gray-400">喜歡佔領的 AI ，他會想讓自己的棋子越多越好。</span>
+                    </Label>
+                  </div>
+                   <div className="flex items-start space-x-3">
+                    <RadioGroupItem value="Max ev3" id="r4" className="mt-1"/>
+                    <Label htmlFor="r4" className="flex flex-col">
+                      <span className="font-semibold">Max ev3</span>
+                      <span className="text-sm text-gray-400">結合了以上兩個的優點，比以上兩個的棋力還強。</span>
+                    </Label>
+                  </div>
+                   <div className="flex items-start space-x-3">
+                    <RadioGroupItem value="Min ev3" id="r5" className="mt-1"/>
+                    <Label htmlFor="r5" className="flex flex-col">
+                      <span className="font-semibold">Min ev3</span>
+                      <span className="text-sm text-gray-400">策略與 Max ev3 相同， 只是最大化的是對手的利益</span>
                     </Label>
                   </div>
                 </RadioGroup>

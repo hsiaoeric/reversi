@@ -8,7 +8,7 @@ export type Player = typeof PLAYER_1 | typeof PLAYER_2;
 export type Cell = typeof EMPTY | Player;
 export type Board = Cell[][];
 export type Move = { row: number; col: number };
-export type AIStrategy = "Strategic" | "Greedy" | "Random";
+export type AIStrategy = "random" | "Max ev1" | "Max ev2" | "Max ev3" | "Min ev3";
 
 const directions = [
   { r: -1, c: 0 }, { r: 1, c: 0 }, { r: 0, c: -1 }, { r: 0, c: 1 },
@@ -105,13 +105,13 @@ export const getWinner = (board: Board): Player | null | 0 => {
 
 // --- AI LOGIC ---
 
-// Strategy 1: Random
+// Strategy "random"
 const getRandomMove = (validMoves: Move[]): Move | null => {
   if (validMoves.length === 0) return null;
   return validMoves[Math.floor(Math.random() * validMoves.length)];
 };
 
-// Strategy 2: Greedy
+// Strategy "Max ev2" (Greedy for flips)
 const getGreedyMove = (board: Board, validMoves: Move[], player: Player): Move | null => {
   if (validMoves.length === 0) return null;
   
@@ -128,8 +128,10 @@ const getGreedyMove = (board: Board, validMoves: Move[], player: Player): Move |
   return bestMove;
 };
 
-// Strategy 3: Strategic (Alpha-Beta Pruning)
+// --- Strategic AI using Alpha-Beta Pruning ---
 const STRATEGIC_DEPTH = 4; // Adjust for difficulty
+
+// --- EVALUATION FUNCTIONS ---
 const pieceSquareTable = [
     [120, -20, 20, 5, 5, 20, -20, 120],
     [-20, -40, -5, -5, -5, -5, -40, -20],
@@ -141,38 +143,62 @@ const pieceSquareTable = [
     [120, -20, 20, 5, 5, 20, -20, 120]
 ];
 
-const evaluateBoard = (board: Board, player: Player): number => {
+// For "Max ev1" - Mobility-based evaluation
+const evaluateMobility = (board: Board, player: Player): number => {
     const opponent = player === PLAYER_1 ? PLAYER_2 : PLAYER_1;
-    let playerScore = 0;
-    let opponentScore = 0;
+    const playerMoves = getValidMoves(board, player).length;
+    const opponentMoves = getValidMoves(board, opponent).length;
+    return playerMoves - opponentMoves;
+};
 
+// For "Max ev3" - Combined evaluation
+const evaluateCombined = (board: Board, player: Player): number => {
+    const opponent = player === PLAYER_1 ? PLAYER_2 : PLAYER_1;
+    let positionalScore = 0;
+    
     for (let r = 0; r < BOARD_SIZE; r++) {
         for (let c = 0; c < BOARD_SIZE; c++) {
             if (board[r][c] === player) {
-                playerScore += pieceSquareTable[r][c];
+                positionalScore += pieceSquareTable[r][c];
             } else if (board[r][c] === opponent) {
-                opponentScore += pieceSquareTable[r][c];
+                positionalScore -= pieceSquareTable[r][c];
             }
         }
     }
-    return playerScore - opponentScore;
+    
+    const mobilityScore = evaluateMobility(board, player);
+    
+    const scores = calculateScores(board);
+    const pieceDifference = player === PLAYER_1 ? (scores.player1 - scores.player2) : (scores.player2 - scores.player1);
+    
+    if (checkGameOver(board)) {
+        if (pieceDifference > 0) return 10000;
+        if (pieceDifference < 0) return -10000;
+        return 0;
+    }
+    
+    // Combine heuristics with weights
+    return positionalScore + (mobilityScore * 8) + (pieceDifference * 2);
 };
 
-const alphaBeta = (board: Board, depth: number, alpha: number, beta: number, maximizingPlayer: boolean, player: Player): number => {
+// --- GENERIC ALPHA-BETA SEARCH ---
+const alphaBeta = (board: Board, depth: number, alpha: number, beta: number, maximizingPlayer: boolean, player: Player, evaluate: (b: Board, p: Player) => number): number => {
     if (depth === 0 || checkGameOver(board)) {
-        return evaluateBoard(board, player);
+        return evaluate(board, player);
     }
 
-    const moves = getValidMoves(board, maximizingPlayer ? player : (player === PLAYER_1 ? PLAYER_2 : PLAYER_1));
+    const currentTurnPlayer = maximizingPlayer ? player : (player === PLAYER_1 ? PLAYER_2 : PLAYER_1);
+    const moves = getValidMoves(board, currentTurnPlayer);
+
     if (moves.length === 0) {
-      return alphaBeta(board, depth - 1, alpha, beta, !maximizingPlayer, player);
+      return alphaBeta(board, depth - 1, alpha, beta, !maximizingPlayer, player, evaluate);
     }
 
     if (maximizingPlayer) {
         let maxEval = -Infinity;
         for (const move of moves) {
-            const { newBoard } = makeMove(board, move, player);
-            const evalScore = alphaBeta(newBoard, depth - 1, alpha, beta, false, player);
+            const { newBoard } = makeMove(board, move, currentTurnPlayer);
+            const evalScore = alphaBeta(newBoard, depth - 1, alpha, beta, false, player, evaluate);
             maxEval = Math.max(maxEval, evalScore);
             alpha = Math.max(alpha, evalScore);
             if (beta <= alpha) break;
@@ -180,10 +206,9 @@ const alphaBeta = (board: Board, depth: number, alpha: number, beta: number, max
         return maxEval;
     } else {
         let minEval = Infinity;
-        const opponent = player === PLAYER_1 ? PLAYER_2 : PLAYER_1;
         for (const move of moves) {
-            const { newBoard } = makeMove(board, move, opponent);
-            const evalScore = alphaBeta(newBoard, depth - 1, alpha, beta, true, player);
+            const { newBoard } = makeMove(board, move, currentTurnPlayer);
+            const evalScore = alphaBeta(newBoard, depth - 1, alpha, beta, true, player, evaluate);
             minEval = Math.min(minEval, evalScore);
             beta = Math.min(beta, evalScore);
             if (beta <= alpha) break;
@@ -192,17 +217,17 @@ const alphaBeta = (board: Board, depth: number, alpha: number, beta: number, max
     }
 };
 
-
-const getStrategicMove = (board: Board, validMoves: Move[], player: Player): Move | null => {
+const findBestMove = (board: Board, validMoves: Move[], player: Player, evaluate: (b: Board, p: Player) => number, minimize = false): Move | null => {
     if (validMoves.length === 0) return null;
     
     let bestMove: Move | null = validMoves[0];
-    let bestValue = -Infinity;
+    let bestValue = minimize ? Infinity : -Infinity;
 
     for (const move of validMoves) {
         const { newBoard } = makeMove(board, move, player);
-        const moveValue = alphaBeta(newBoard, STRATEGIC_DEPTH - 1, -Infinity, Infinity, false, player);
-        if (moveValue > bestValue) {
+        const moveValue = alphaBeta(newBoard, STRATEGIC_DEPTH - 1, -Infinity, Infinity, false, player, evaluate);
+        
+        if (minimize ? (moveValue < bestValue) : (moveValue > bestValue)) {
             bestValue = moveValue;
             bestMove = move;
         }
@@ -210,18 +235,22 @@ const getStrategicMove = (board: Board, validMoves: Move[], player: Player): Mov
     return bestMove;
 };
 
-
+// --- Main AI Dispatcher ---
 export const getAiMove = (board: Board, player: Player, strategy: AIStrategy): Move | null => {
     const validMoves = getValidMoves(board, player);
     if (validMoves.length === 0) return null;
     
     switch (strategy) {
-        case "Random":
+        case "random":
             return getRandomMove(validMoves);
-        case "Greedy":
+        case "Max ev2": // Greedy for flips
             return getGreedyMove(board, validMoves, player);
-        case "Strategic":
-            return getStrategicMove(board, validMoves, player);
+        case "Max ev1": // Mobility-based
+            return findBestMove(board, validMoves, player, evaluateMobility);
+        case "Max ev3": // Combined (strongest)
+            return findBestMove(board, validMoves, player, evaluateCombined);
+        case "Min ev3": // Sabotage (minimize combined score)
+            return findBestMove(board, validMoves, player, evaluateCombined, true);
         default:
             return getRandomMove(validMoves);
     }
