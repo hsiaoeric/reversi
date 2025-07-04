@@ -17,7 +17,7 @@ export const GamePiece = memo(({ player, isFlipped }: GamePieceProps) => {
 
   return (
     <div className="w-full h-full p-1 perspective">
-      <div className={cn("relative w-full h-full preserve-3d transition-transform duration-500", isFlipped && "animate-flip")}>
+      <div className={cn("relative w-full h-full preserve-3d", isFlipped && "animate-flip")}>
          <div className="absolute w-full h-full backface-hidden">
             <SeedIcon player={player === 1 ? 2 : 1} className="w-full h-full" />
         </div>

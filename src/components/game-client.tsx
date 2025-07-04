@@ -86,7 +86,7 @@ export default function GameClient() {
     const { newBoard, flipped } = makeMove(board, move, currentPlayer);
     setBoard(newBoard);
     setFlippedPieces(flipped);
-    setTimeout(() => setFlippedPieces([]), 600);
+    setTimeout(() => setFlippedPieces([]), 700);
     
     const nextPlayer = currentPlayer === PLAYER_1 ? PLAYER_2 : PLAYER_1;
     const newScores = calculateScores(newBoard);
