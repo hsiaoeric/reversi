@@ -114,11 +114,13 @@ export default function GameClient() {
         generateAiOpponentName({ aiStrategy }).then(res => setAiOpponentName(res.aiOpponentName)).catch(() => setAiOpponentName(aiStrategy));
       }
 
-      const aiMove = getAiMove(board, PLAYER_2, aiStrategy);
-      if (aiMove) {
-        handleMove(aiMove.row, aiMove.col);
-      }
-      setIsAiThinking(false);
+      setTimeout(() => {
+        const aiMove = getAiMove(board, PLAYER_2, aiStrategy);
+        if (aiMove) {
+          handleMove(aiMove.row, aiMove.col);
+        }
+        setIsAiThinking(false);
+      }, 500);
     }
   }, [gameMode, currentPlayer, isGameOver, board, aiStrategy, handleMove, aiOpponentName]);
 
@@ -173,7 +175,7 @@ export default function GameClient() {
         />
 
         <div id="message" className="text-center mt-4 text-lg font-medium">
-            {isGameOver ? "Game Over" : `${getPlayerName(currentPlayer)}'s turn`}
+            {isGameOver ? "Game Over" : isAiThinking ? `${P2_NAME} is thinking...` : `${getPlayerName(currentPlayer)}'s turn`}
         </div>
 
         <AlertDialog open={isGameOver}>
