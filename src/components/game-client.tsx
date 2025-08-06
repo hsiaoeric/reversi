@@ -70,6 +70,11 @@ export default function GameClient() {
     fetchNames();
   }, [player1Type, player2Type, player1Strategy, player2Strategy]);
 
+  useEffect(() => {
+    // Initial valid moves calculation
+    setValidMoves(getValidMoves(board, currentPlayer));
+  }, []);
+
 
   const P1_NAME = playerNames.p1;
   const P2_NAME = playerNames.p2;
