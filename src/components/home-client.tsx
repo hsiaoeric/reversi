@@ -56,31 +56,38 @@ export function HomeClient() {
     { value: "Max ev1", label: "Max ev1", description: "使用的是封鎖對方行動力的策略，他會讓對手可下的棋步越來越少。" },
     { value: "Max ev2", label: "Max ev2", description: "喜歡佔領的 AI ，他會想讓自己的棋子越多越好。" },
     { value: "Max ev3", label: "Max ev3", description: "結合了以上兩個的優點，比以上兩個的棋力還強。" },
-    { value: "Min ev3", label: "Min ev3", description: "策略與 Max ev3 相同， 只是最大化的是對手的利益" },
+    { value: "Min ev3", label: "Min ev3", description: "策略與 Max ev3 相同， 只是最大化的是對手的利益" }
   ];
 
-  const AIStrategySelect = ({ value, onValueChange }: { value: AIStrategy, onValueChange: (value: AIStrategy) => void }) => (
-    <Select value={value} onValueChange={(v) => onValueChange(v as AIStrategy)}>
-      <SelectTrigger>
-        <SelectValue placeholder="Select AI Strategy" />
-      </SelectTrigger>
-      <SelectContent>
-        <TooltipProvider>
-          {aiStrategies.map(s => (
-            <Tooltip key={s.value} delayDuration={100}>
-              <TooltipTrigger asChild>
-                <SelectItem value={s.value}>{s.label}</SelectItem>
-              </TooltipTrigger>
-              <TooltipContent side="right" align="start">
-                <p className="font-bold">{s.label}</p>
-                <p>{s.description}</p>
-              </TooltipContent>
-            </Tooltip>
-          ))}
-        </TooltipProvider>
-      </SelectContent>
-    </Select>
-  );
+  const AIStrategySelect = ({ value, onValueChange }: { value: AIStrategy, onValueChange: (value: AIStrategy) => void }) => {
+    const selectedStrategy = aiStrategies.find(s => s.value === value);
+
+    return (
+      <TooltipProvider>
+        <Tooltip delayDuration={100}>
+          <TooltipTrigger asChild>
+            <Select value={value} onValueChange={(v) => onValueChange(v as AIStrategy)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select AI Strategy" />
+              </SelectTrigger>
+              <SelectContent>
+                {aiStrategies.map(s => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </TooltipTrigger>
+          {selectedStrategy && (
+            <TooltipContent side="top" align="start">
+              <p className="font-bold">{selectedStrategy.label}</p>
+              <p>{selectedStrategy.description}</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
 
   return (
     <>
