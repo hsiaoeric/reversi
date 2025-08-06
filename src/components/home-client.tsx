@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { WatermelonIcon } from "@/components/icons/watermelon-icon";
 import type { AIStrategy } from "@/lib/reversi-logic";
 
 export function HomeClient() {
@@ -40,12 +39,11 @@ export function HomeClient() {
     <>
       <Card className="w-full max-w-md shadow-2xl bg-gray-900 border-gray-700 text-white">
         <CardHeader className="items-center text-center">
-          <WatermelonIcon className="h-24 w-24 mb-4" />
           <CardTitle className="text-4xl font-bold font-headline">
-            Watermelon Reversi
+            Reversi
           </CardTitle>
           <CardDescription className="text-lg pt-2 text-gray-300">
-            A fresh and juicy take on a classic game.
+            A classic strategy board game.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">

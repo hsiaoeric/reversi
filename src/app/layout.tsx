@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'Watermelon Reversi',
-  description: 'A classic Reversi game with a watermelon theme.',
+  title: 'Reversi',
+  description: 'A classic Reversi game.',
 };
 
 export default function RootLayout({

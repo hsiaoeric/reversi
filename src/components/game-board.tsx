@@ -43,11 +43,6 @@ const GameBoard = ({ board, validMoves, onSquareClick, isAiThinking, flippedPiec
           })
         )}
       </div>
-      {isAiThinking && (
-        <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-            <Loader className="w-16 h-16 animate-spin text-primary-foreground"/>
-        </div>
-      )}
     </div>
   );
 };

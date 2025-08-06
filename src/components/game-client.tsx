@@ -114,15 +114,11 @@ export default function GameClient() {
         generateAiOpponentName({ aiStrategy }).then(res => setAiOpponentName(res.aiOpponentName)).catch(() => setAiOpponentName(aiStrategy));
       }
 
-      const aiMoveTimeout = setTimeout(() => {
-        const aiMove = getAiMove(board, PLAYER_2, aiStrategy);
-        if (aiMove) {
-          handleMove(aiMove.row, aiMove.col);
-        }
-        setIsAiThinking(false);
-      }, 1000);
-
-      return () => clearTimeout(aiMoveTimeout);
+      const aiMove = getAiMove(board, PLAYER_2, aiStrategy);
+      if (aiMove) {
+        handleMove(aiMove.row, aiMove.col);
+      }
+      setIsAiThinking(false);
     }
   }, [gameMode, currentPlayer, isGameOver, board, aiStrategy, handleMove, aiOpponentName]);
 
@@ -146,7 +142,7 @@ export default function GameClient() {
       )}
       <div className="w-full max-w-[700px]">
         <div className="flex justify-between items-center mb-4 px-2">
-            <h1 className="text-2xl sm:text-4xl font-bold font-headline">Watermelon Reversi</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold font-headline">Reversi</h1>
             <Button variant="outline" onClick={() => router.push('/')} className="text-black">New Game</Button>
         </div>
         
