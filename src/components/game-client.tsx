@@ -71,7 +71,6 @@ export default function GameClient() {
   }, [player1Type, player2Type, player1Strategy, player2Strategy]);
 
   useEffect(() => {
-    // Initial valid moves calculation
     setValidMoves(getValidMoves(board, currentPlayer));
   }, [board, currentPlayer]);
 
@@ -157,7 +156,7 @@ export default function GameClient() {
       setTimeout(() => {
         makeAiMove(boardCopy, currentPlayer);
         setIsAiThinking(false);
-      }, 500); 
+      }, 1000); 
     }
   }, [currentPlayer, isGameOver, board, getPlayerType, makeAiMove]);
 
@@ -238,5 +237,3 @@ export default function GameClient() {
     </main>
   );
 }
-
-    
