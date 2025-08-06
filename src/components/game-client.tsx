@@ -73,7 +73,7 @@ export default function GameClient() {
   useEffect(() => {
     // Initial valid moves calculation
     setValidMoves(getValidMoves(board, currentPlayer));
-  }, []);
+  }, [board, currentPlayer]);
 
 
   const P1_NAME = playerNames.p1;
@@ -84,7 +84,7 @@ export default function GameClient() {
 
 
   const handleMove = useCallback((row: number, col: number) => {
-    if (isGameOver) return;
+    if (isGameOver || getPlayerType(currentPlayer) === 'ai') return;
     const move = { row, col };
     
     const isMoveValid = validMoves.some(m => m.row === row && m.col === col);
@@ -112,23 +112,54 @@ export default function GameClient() {
         setPassMessage(`${getPlayerName(nextPlayer)} has no valid moves. ${getPlayerName(currentPlayer)}'s turn again.`);
         setTimeout(() => setPassMessage(null), 2000);
         setValidMoves(currentPlayerMoves);
+        // a player passes, so we don't switch player
     }
-  }, [board, currentPlayer, isGameOver, validMoves, getPlayerName]);
+  }, [board, currentPlayer, isGameOver, validMoves, getPlayerName, player1Type, player2Type]);
+
+
+  const makeAiMove = useCallback((currentBoard: Board, player: Player) => {
+    const aiStrategy = getPlayerStrategy(player);
+    const aiMove = getAiMove(currentBoard, player, aiStrategy);
+    if (aiMove) {
+        const { newBoard, flipped } = makeMove(currentBoard, aiMove, player);
+        setBoard(newBoard);
+        setFlippedPieces(flipped);
+        setTimeout(() => setFlippedPieces([]), 800);
+        
+        const nextPlayer = player === PLAYER_1 ? PLAYER_2 : PLAYER_1;
+        const newScores = calculateScores(newBoard);
+        setScores(newScores);
+
+        const nextPlayerMoves = getValidMoves(newBoard, nextPlayer);
+        const currentPlayerMoves = getValidMoves(newBoard, player);
+
+        if (checkGameOver(newBoard)) {
+            setIsGameOver(true);
+            setWinner(getWinner(newBoard));
+        } else if (nextPlayerMoves.length > 0) {
+            setCurrentPlayer(nextPlayer);
+            setValidMoves(nextPlayerMoves);
+        } else {
+            setPassMessage(`${getPlayerName(nextPlayer)} has no valid moves. ${getPlayerName(player)}'s turn again.`);
+            setTimeout(() => setPassMessage(null), 2000);
+            setValidMoves(currentPlayerMoves);
+            // Don't switch player, AI gets another turn
+        }
+    }
+  }, [getPlayerStrategy, getPlayerName]);
+
 
   useEffect(() => {
     const currentPlayerType = getPlayerType(currentPlayer);
     if (currentPlayerType === 'ai' && !isGameOver) {
       setIsAiThinking(true);
+      const boardCopy = JSON.parse(JSON.stringify(board));
       setTimeout(() => {
-        const aiStrategy = getPlayerStrategy(currentPlayer);
-        const aiMove = getAiMove(board, currentPlayer, aiStrategy);
-        if (aiMove) {
-          handleMove(aiMove.row, aiMove.col);
-        }
+        makeAiMove(boardCopy, currentPlayer);
         setIsAiThinking(false);
       }, 500); 
     }
-  }, [currentPlayer, isGameOver, board, handleMove, getPlayerType, getPlayerStrategy]);
+  }, [currentPlayer, isGameOver, board, getPlayerType, makeAiMove]);
 
   const resetGame = () => {
     const initialBoard = createInitialBoard();
@@ -179,7 +210,7 @@ export default function GameClient() {
 
         <GameBoard
           board={board}
-          validMoves={getPlayerType(currentPlayer) === 'human' ? validMoves : []}
+          validMoves={validMoves}
           onSquareClick={handleMove}
           isAiThinking={isAiThinking}
           flippedPieces={flippedPieces}
@@ -208,3 +239,4 @@ export default function GameClient() {
   );
 }
 
+    
