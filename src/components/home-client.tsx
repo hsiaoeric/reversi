@@ -21,6 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 type PlayerType = "human" | "ai";
 
@@ -53,6 +59,29 @@ export function HomeClient() {
     { value: "Min ev3", label: "Min ev3", description: "策略與 Max ev3 相同， 只是最大化的是對手的利益" },
   ];
 
+  const AIStrategySelect = ({ value, onValueChange }: { value: AIStrategy, onValueChange: (value: AIStrategy) => void }) => (
+    <Select value={value} onValueChange={(v) => onValueChange(v as AIStrategy)}>
+      <SelectTrigger>
+        <SelectValue placeholder="Select AI Strategy" />
+      </SelectTrigger>
+      <SelectContent>
+        <TooltipProvider>
+          {aiStrategies.map(s => (
+            <Tooltip key={s.value} delayDuration={100}>
+              <TooltipTrigger asChild>
+                <SelectItem value={s.value}>{s.label}</SelectItem>
+              </TooltipTrigger>
+              <TooltipContent side="right" align="start">
+                <p className="font-bold">{s.label}</p>
+                <p>{s.description}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </TooltipProvider>
+      </SelectContent>
+    </Select>
+  );
+
   return (
     <>
       <Card className="w-full max-w-lg shadow-2xl bg-gray-900 border-gray-700 text-white">
@@ -81,14 +110,7 @@ export function HomeClient() {
               {player1Type === "ai" && (
                 <div className="space-y-2">
                   <Label htmlFor="p1-strategy">AI Strategy</Label>
-                   <Select value={player1Strategy} onValueChange={(v) => setPlayer1Strategy(v as AIStrategy)}>
-                    <SelectTrigger id="p1-strategy">
-                      <SelectValue placeholder="Select AI Strategy" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {aiStrategies.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                   <AIStrategySelect value={player1Strategy} onValueChange={setPlayer1Strategy} />
                 </div>
               )}
             </div>
@@ -108,14 +130,7 @@ export function HomeClient() {
               {player2Type === "ai" && (
                 <div className="space-y-2">
                   <Label htmlFor="p2-strategy">AI Strategy</Label>
-                  <Select value={player2Strategy} onValueChange={(v) => setPlayer2Strategy(v as AIStrategy)}>
-                    <SelectTrigger id="p2-strategy">
-                      <SelectValue placeholder="Select AI Strategy" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {aiStrategies.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <AIStrategySelect value={player2Strategy} onValueChange={setPlayer2Strategy} />
                 </div>
               )}
             </div>
