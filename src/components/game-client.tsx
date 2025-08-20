@@ -18,7 +18,6 @@ import {
   Move,
   Player
 } from "@/lib/reversi-logic";
-import { generateAiOpponentName } from "@/ai/flows/generate-ai-opponent-name";
 
 import GameBoard from "./game-board";
 import { Button } from "./ui/button";
@@ -44,7 +43,6 @@ export default function GameClient() {
   const player1Strategy = useMemo(() => (searchParams.get("p1strategy") as AIStrategy) || "Max ev2", [searchParams]);
   const player2Strategy = useMemo(() => (searchParams.get("p2strategy") as AIStrategy) || "Max ev2", [searchParams]);
   
-  const [playerNames, setPlayerNames] = useState({ p1: 'Player 1', p2: 'Player 2' });
   const [board, setBoard] = useState<Board>(createInitialBoard());
   const [currentPlayer, setCurrentPlayer] = useState<Player>(PLAYER_1);
   const [validMoves, setValidMoves] = useState<Move[]>([]);
@@ -56,27 +54,12 @@ export default function GameClient() {
   const [passMessage, setPassMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchNames = async () => {
-        let p1Name = "Player 1";
-        let p2Name = "Player 2";
-        if (player1Type === 'ai') {
-            p1Name = (await generateAiOpponentName({ aiStrategy: player1Strategy })).aiOpponentName;
-        }
-        if (player2Type === 'ai') {
-            p2Name = (await generateAiOpponentName({ aiStrategy: player2Strategy })).aiOpponentName;
-        }
-        setPlayerNames({ p1: p1Name, p2: p2Name });
-    };
-    fetchNames();
-  }, [player1Type, player2Type, player1Strategy, player2Strategy]);
-
-  useEffect(() => {
     setValidMoves(getValidMoves(board, currentPlayer));
   }, [board, currentPlayer]);
 
 
-  const P1_NAME = playerNames.p1;
-  const P2_NAME = playerNames.p2;
+  const P1_NAME = "Player 1";
+  const P2_NAME = "Player 2";
   const getPlayerName = (player: Player) => player === PLAYER_1 ? P1_NAME : P2_NAME;
   const getPlayerType = (player: Player): PlayerType => player === PLAYER_1 ? player1Type : player2Type;
   const getPlayerStrategy = (player: Player): AIStrategy => player === PLAYER_1 ? player1Strategy : player2Strategy;
