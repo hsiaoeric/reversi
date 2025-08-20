@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -17,7 +18,6 @@ import {
   Move,
   Player
 } from "@/lib/reversi-logic";
-import { generateAiOpponentName } from "@/ai/flows/generate-ai-opponent-name";
 
 import GameBoard from "./game-board";
 import { Button } from "./ui/button";
@@ -32,15 +32,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { User, Bot } from "lucide-react";
 
-type GameMode = "pvp" | "pva";
+type PlayerType = "human" | "ai";
 
 export default function GameClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const gameMode = useMemo(() => (searchParams.get("mode") as GameMode) || "pvp", [searchParams]);
-  const aiStrategy = useMemo(() => (searchParams.get("strategy") as AIStrategy) || "Max ev2", [searchParams]);
-
+  const player1Type = useMemo(() => (searchParams.get("p1") as PlayerType) || "human", [searchParams]);
+  const player2Type = useMemo(() => (searchParams.get("p2") as PlayerType) || "ai", [searchParams]);
+  const player1Strategy = useMemo(() => (searchParams.get("p1strategy") as AIStrategy) || "Max ev2", [searchParams]);
+  const player2Strategy = useMemo(() => (searchParams.get("p2strategy") as AIStrategy) || "Max ev2", [searchParams]);
+  
   const [board, setBoard] = useState<Board>(createInitialBoard());
   const [currentPlayer, setCurrentPlayer] = useState<Player>(PLAYER_1);
   const [validMoves, setValidMoves] = useState<Move[]>([]);
@@ -49,32 +51,22 @@ export default function GameClient() {
   const [winner, setWinner] = useState<Player | 0 | null>(null);
   const [flippedPieces, setFlippedPieces] = useState<Move[]>([]);
   const [isAiThinking, setIsAiThinking] = useState(false);
-  const [aiOpponentName, setAiOpponentName] = useState<string>('Computer');
   const [passMessage, setPassMessage] = useState<string | null>(null);
 
-  const P1_NAME = "Player 1";
-  const P2_NAME = gameMode === 'pva' ? aiOpponentName : "Player 2";
-
-  const updateGameState = useCallback((currentBoard: Board, player: Player) => {
-    const newScores = calculateScores(currentBoard);
-    setScores(newScores);
-
-    const newValidMoves = getValidMoves(currentBoard, player);
-    setValidMoves(newValidMoves);
-
-    const gameOver = checkGameOver(currentBoard);
-    if (gameOver) {
-      setIsGameOver(true);
-      setWinner(getWinner(currentBoard));
-    }
-  }, []);
-
   useEffect(() => {
-    updateGameState(board, currentPlayer);
-  }, []);
+    setValidMoves(getValidMoves(board, currentPlayer));
+  }, [board, currentPlayer]);
+
+
+  const P1_NAME = "Player 1";
+  const P2_NAME = "Player 2";
+  const getPlayerName = (player: Player) => player === PLAYER_1 ? P1_NAME : P2_NAME;
+  const getPlayerType = (player: Player): PlayerType => player === PLAYER_1 ? player1Type : player2Type;
+  const getPlayerStrategy = (player: Player): AIStrategy => player === PLAYER_1 ? player1Strategy : player2Strategy;
+
 
   const handleMove = useCallback((row: number, col: number) => {
-    if (isGameOver) return;
+    if (isGameOver || getPlayerType(currentPlayer) === 'ai') return;
     const move = { row, col };
     
     const isMoveValid = validMoves.some(m => m.row === row && m.col === col);
@@ -99,44 +91,68 @@ export default function GameClient() {
         setCurrentPlayer(nextPlayer);
         setValidMoves(nextPlayerMoves);
     } else {
-        const nextPlayerName = nextPlayer === PLAYER_1 ? P1_NAME : P2_NAME;
-        const currentPlayerName = currentPlayer === PLAYER_1 ? P1_NAME : P2_NAME;
-        setPassMessage(`${nextPlayerName} has no valid moves. ${currentPlayerName}'s turn again.`);
+        setPassMessage(`${getPlayerName(nextPlayer)} has no valid moves. ${getPlayerName(currentPlayer)}'s turn again.`);
         setTimeout(() => setPassMessage(null), 2000);
         setValidMoves(currentPlayerMoves);
+        // a player passes, so we don't switch player
     }
-  }, [board, currentPlayer, isGameOver, validMoves, P1_NAME, P2_NAME]);
+  }, [board, currentPlayer, isGameOver, validMoves, getPlayerName, player1Type, player2Type]);
+
+
+  const makeAiMove = useCallback((currentBoard: Board, player: Player) => {
+    const aiStrategy = getPlayerStrategy(player);
+    const aiMove = getAiMove(currentBoard, player, aiStrategy);
+    if (aiMove) {
+        const { newBoard, flipped } = makeMove(currentBoard, aiMove, player);
+        setBoard(newBoard);
+        setFlippedPieces(flipped);
+        setTimeout(() => setFlippedPieces([]), 800);
+        
+        const nextPlayer = player === PLAYER_1 ? PLAYER_2 : PLAYER_1;
+        const newScores = calculateScores(newBoard);
+        setScores(newScores);
+
+        const nextPlayerMoves = getValidMoves(newBoard, nextPlayer);
+        const currentPlayerMoves = getValidMoves(newBoard, player);
+
+        if (checkGameOver(newBoard)) {
+            setIsGameOver(true);
+            setWinner(getWinner(newBoard));
+        } else if (nextPlayerMoves.length > 0) {
+            setCurrentPlayer(nextPlayer);
+            setValidMoves(nextPlayerMoves);
+        } else {
+            setPassMessage(`${getPlayerName(nextPlayer)} has no valid moves. ${getPlayerName(player)}'s turn again.`);
+            setTimeout(() => setPassMessage(null), 2000);
+            setValidMoves(currentPlayerMoves);
+            // Don't switch player, AI gets another turn
+        }
+    }
+  }, [getPlayerStrategy, getPlayerName]);
+
 
   useEffect(() => {
-    if (gameMode === 'pva' && currentPlayer === PLAYER_2 && !isGameOver) {
+    const currentPlayerType = getPlayerType(currentPlayer);
+    if (currentPlayerType === 'ai' && !isGameOver) {
       setIsAiThinking(true);
-      if (aiOpponentName === 'Computer') {
-        generateAiOpponentName({ aiStrategy }).then(res => setAiOpponentName(res.aiOpponentName)).catch(() => setAiOpponentName(aiStrategy));
-      }
-
-      const aiMoveTimeout = setTimeout(() => {
-        const aiMove = getAiMove(board, PLAYER_2, aiStrategy);
-        if (aiMove) {
-          handleMove(aiMove.row, aiMove.col);
-        }
+      const boardCopy = JSON.parse(JSON.stringify(board));
+      setTimeout(() => {
+        makeAiMove(boardCopy, currentPlayer);
         setIsAiThinking(false);
-      }, 1000);
-
-      return () => clearTimeout(aiMoveTimeout);
+      }, 1000); 
     }
-  }, [gameMode, currentPlayer, isGameOver, board, aiStrategy, handleMove, aiOpponentName]);
+  }, [currentPlayer, isGameOver, board, getPlayerType, makeAiMove]);
 
   const resetGame = () => {
     const initialBoard = createInitialBoard();
     setBoard(initialBoard);
     setCurrentPlayer(PLAYER_1);
-    updateGameState(initialBoard, PLAYER_1);
+    setValidMoves(getValidMoves(initialBoard, PLAYER_1));
+    setScores(calculateScores(initialBoard));
     setIsGameOver(false);
     setWinner(null);
   };
   
-  const getPlayerName = (player: Player) => player === PLAYER_1 ? P1_NAME : P2_NAME;
-
   return (
     <main className="flex flex-col items-center justify-center min-h-screen p-2 sm:p-4">
       {passMessage && (
@@ -146,25 +162,31 @@ export default function GameClient() {
       )}
       <div className="w-full max-w-[700px]">
         <div className="flex justify-between items-center mb-4 px-2">
-            <h1 className="text-2xl sm:text-4xl font-bold font-headline">Watermelon Reversi</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold font-headline">Reversi</h1>
             <Button variant="outline" onClick={() => router.push('/')} className="text-black">New Game</Button>
         </div>
         
         <div className="flex justify-around items-center mb-4 p-4 rounded-lg">
-            <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_1 ? 'bg-green-500/20 scale-110' : ''}`}>
+            <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_1 ? 'bg-pink-500/20 scale-110' : ''}`}>
                 <div className="flex items-center gap-2">
-                    {gameMode === 'pva' ? <User className="w-6 h-6"/> : <div className="w-6 h-6 rounded-full bg-black border-2 border-border" />}
+                    {player1Type === 'ai' ? <Bot className="w-6 h-6"/> : <User className="w-6 h-6"/>}
                     <span className="text-lg font-semibold">{P1_NAME}</span>
                 </div>
-                <span className="text-3xl font-bold">{scores.player1}</span>
+                 <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full bg-black border-2 border-gray-400" />
+                    <span className="text-3xl font-bold">{scores.player1}</span>
+                 </div>
             </div>
             
-            <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_2 ? 'bg-green-500/20 scale-110' : ''}`}>
+            <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_2 ? 'bg-pink-500/20 scale-110' : ''}`}>
                 <div className="flex items-center gap-2">
-                    {gameMode === 'pva' ? <Bot className="w-6 h-6"/> : <div className="w-6 h-6 rounded-full bg-primary border-2 border-border" />}
+                    {player2Type === 'ai' ? <Bot className="w-6 h-6"/> : <User className="w-6 h-6"/>}
                     <span className="text-lg font-semibold">{P2_NAME}</span>
                 </div>
-                <span className="text-3xl font-bold">{scores.player2}</span>
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full bg-pink-500 border-2 border-gray-400" />
+                    <span className="text-3xl font-bold">{scores.player2}</span>
+                </div>
             </div>
         </div>
 
@@ -177,7 +199,7 @@ export default function GameClient() {
         />
 
         <div id="message" className="text-center mt-4 text-lg font-medium">
-            {isGameOver ? "Game Over" : `${getPlayerName(currentPlayer)}'s turn`}
+            {isGameOver ? "Game Over" : isAiThinking ? `${getPlayerName(currentPlayer)} is thinking...` : `${getPlayerName(currentPlayer)}'s turn`}
         </div>
 
         <AlertDialog open={isGameOver}>
@@ -185,7 +207,7 @@ export default function GameClient() {
             <AlertDialogHeader>
               <AlertDialogTitle>Game Over!</AlertDialogTitle>
               <AlertDialogDescription>
-                {winner === 0 ? "It's a tie!" : `${winner === PLAYER_1 ? P1_NAME : P2_NAME} wins!`}
+                {winner === 0 ? "It's a tie!" : `${getPlayerName(winner as Player)} wins!`}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
