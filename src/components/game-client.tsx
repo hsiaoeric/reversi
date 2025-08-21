@@ -167,7 +167,7 @@ export default function GameClient() {
         </div>
         
         <div className="flex justify-around items-center mb-4 p-4 rounded-lg">
-            <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_1 ? 'bg-pink-500/20 scale-110' : ''}`}>
+            <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_1 ? 'bg-white/20 scale-110' : ''}`}>
                 <div className="flex items-center gap-2">
                     {player1Type === 'ai' ? <Bot className="w-6 h-6"/> : <User className="w-6 h-6"/>}
                     <span className="text-lg font-semibold">{P1_NAME}</span>
@@ -178,13 +178,13 @@ export default function GameClient() {
                  </div>
             </div>
             
-            <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_2 ? 'bg-pink-500/20 scale-110' : ''}`}>
+            <div className={`flex flex-col items-center p-3 rounded-lg transition-all duration-300 ${currentPlayer === PLAYER_2 ? 'bg-white/20 scale-110' : ''}`}>
                 <div className="flex items-center gap-2">
                     {player2Type === 'ai' ? <Bot className="w-6 h-6"/> : <User className="w-6 h-6"/>}
                     <span className="text-lg font-semibold">{P2_NAME}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-pink-500 border-2 border-gray-400" />
+                    <div className="w-4 h-4 rounded-full bg-white border-2 border-gray-400" />
                     <span className="text-3xl font-bold">{scores.player2}</span>
                 </div>
             </div>
