@@ -124,7 +124,7 @@ export function HomeClient() {
 
             {/* Player 2 Settings */}
             <div className="flex-1 space-y-3">
-              <Label htmlFor="p2-type" className="text-xl font-semibold">Player 2 (Pink)</Label>
+              <Label htmlFor="p2-type" className="text-xl font-semibold">Player 2 (White)</Label>
                <Select value={player2Type} onValueChange={(v) => setPlayer2Type(v as PlayerType)}>
                 <SelectTrigger id="p2-type" className="bg-black">
                   <SelectValue placeholder="Select Player Type" />
