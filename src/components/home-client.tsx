@@ -67,7 +67,7 @@ export function HomeClient() {
         <Tooltip delayDuration={100}>
           <TooltipTrigger asChild>
             <Select value={value} onValueChange={(v) => onValueChange(v as AIStrategy)}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-black">
                 <SelectValue placeholder="Select AI Strategy" />
               </SelectTrigger>
               <SelectContent>
@@ -106,7 +106,7 @@ export function HomeClient() {
             <div className="flex-1 space-y-3">
               <Label htmlFor="p1-type" className="text-xl font-semibold">Player 1 (Black)</Label>
               <Select value={player1Type} onValueChange={(v) => setPlayer1Type(v as PlayerType)}>
-                <SelectTrigger id="p1-type">
+                <SelectTrigger id="p1-type" className="bg-black">
                   <SelectValue placeholder="Select Player Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -126,7 +126,7 @@ export function HomeClient() {
             <div className="flex-1 space-y-3">
               <Label htmlFor="p2-type" className="text-xl font-semibold">Player 2 (Pink)</Label>
                <Select value={player2Type} onValueChange={(v) => setPlayer2Type(v as PlayerType)}>
-                <SelectTrigger id="p2-type">
+                <SelectTrigger id="p2-type" className="bg-black">
                   <SelectValue placeholder="Select Player Type" />
                 </SelectTrigger>
                 <SelectContent>

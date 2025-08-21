@@ -203,7 +203,7 @@ export default function GameClient() {
         </div>
 
         <AlertDialog open={isGameOver}>
-          <AlertDialogContent className="text-black">
+          <AlertDialogContent className="text-black bg-white">
             <AlertDialogHeader>
               <AlertDialogTitle>Game Over!</AlertDialogTitle>
               <AlertDialogDescription>
